@@ -749,8 +749,8 @@
     }
 
     .status-badge.pending {
-      background: #fff3cd;
-      color: #856404;
+      background: #e8f5e9;
+      color: #2e7d32;
     }
 
     .status-badge.rejected {
@@ -966,13 +966,13 @@
       <a href="#" class="link-item" id="aboutLink">
         <i class="fas fa-info-circle"></i> Sobre o sistema
       </a>
-      <a href="#" class="link-item" target="_blank">
+      <a href="https://www.engproducao.uema.br/wp-content/uploads/2021/09/RESOLU%C3%87%C3%83O-DE-ATIVIDADES-COMPLEMENTARES-2021.pdf" class="link-item" target="_blank">
         <i class="fas fa-file-pdf"></i> Resolução de Atividades Complementares
       </a>
     </div>
     
     <div class="login-footer">
-      <p>Atividades Complementares - CAEPRO/UEMA © 2023</p>
+      <p>Atividades Complementares - CAEPRO/UEMA © 2025</p>
     </div>
   </div>
 
@@ -1287,7 +1287,8 @@
       'Participação em projetos especiais e atléticas desportivas', 
       'Publicação de artigo em revista Qualis A1, A2, B1, B2 e B3', 
       'Publicação de artigo em revista Qualis B4, B5 e C', 
-      'Publicação de artigo completo em congresso internacional', 
+      'Publicação de artigo completo em congresso internacional (autor principal)',
+      'Publicação de artigo completo em congresso internacional (co-autoria)',
       'Publicação de artigo completo em congresso nacional', 
       'Depósito de pedido de Patente', 
       'Participação em congressos internacionais', 
@@ -1331,7 +1332,8 @@
       'Participação em projetos especiais e atléticas desportivas': 90,
       'Publicação de artigo em revista Qualis A1, A2, B1, B2 e B3': 180,
       'Publicação de artigo em revista Qualis B4, B5 e C': 120,
-      'Publicação de artigo completo em congresso internacional': 60,
+      'Publicação de artigo completo em congresso internacional (autor principal)': 60,
+      'Publicação de artigo completo em congresso internacional (co-autoria)': 60,
       'Publicação de artigo completo em congresso nacional': 60,
       'Depósito de pedido de Patente': 120,
       'Participação em congressos internacionais': 60,
@@ -1340,7 +1342,7 @@
       'Apresentação de artigo em congresso nacional': 60,
       'Apresentação de trabalhos em seminários, encontros, jornadas, colóquios, workshops locais': 60,
       'Participação como ouvinte em palestras, congressos, seminários, conferências, encontros, workshops': 60,
-      'Participação em audiências de defesas de monografias, dissertações e tesis': 15,
+      'Participação em audiências de defesas de monografias, dissertações e teses': 15,
       'Organização de eventos: seminários, congressos, encontros, jornadas e colóquios': 60,
       'Participação na composição de empresa júnior do Curso': 120,
       'Participação na diretoria do centro Acadêmico do Curso': 120,
@@ -1375,7 +1377,8 @@
       'Participação em projetos especiais e atléticas desportivas': 30,
       'Publicação de artigo em revista Qualis A1, A2, B1, B2 e B3': 90,
       'Publicação de artigo em revista Qualis B4, B5 e C': 60,
-      'Publicação de artigo completo em congresso internacional': 30,
+      'Publicação de artigo completo em congresso internacional (autor principal)': 30,
+      'Publicação de artigo completo em congresso internacional (co-autoria)': 15,
       'Publicação de artigo completo em congresso nacional': 20,
       'Depósito de pedido de Patente': 120,
       'Participação em congressos internacionais': 20,
@@ -1384,7 +1387,7 @@
       'Apresentação de artigo em congresso nacional': 20,
       'Apresentação de trabalhos em seminários, encontros, jornadas, colóquios, workshops locais': 15,
       'Participação como ouvinte em palestras, congressos, seminários, conferências, encontros, workshops': 7.5,
-      'Participação em audiências de defesas de monografias, dissertações e tesis': 5,
+      'Participação em audiências de defesas de monografias, dissertações e teses': 5,
       'Organização de eventos: seminários, congressos, encontros, jornadas e colóquios': 20,
       'Participação na composição de empresa júnior do Curso': 30,
       'Participação na diretoria do centro Acadêmico do Curso': 30,
@@ -1428,7 +1431,7 @@
       'Apresentação de artigo em congresso nacional': 'registro',
       'Apresentação de trabalhos em seminários, encontros, jornadas, colóquios, workshops locais': 'registro',
       'Participação como ouvinte em palestras, congressos, seminários, conferências, encontros, workshops': 'registro',
-      'Participação em audiências de defesas de monografias, dissertações e tesis': 'registro',
+      'Participação em audiências de defesas de monografias, dissertações e teses': 'registro',
       'Organização de eventos: seminários, congressos, encontros, jornadas e colóquios': 'registro',
       'Participação na composição de empresa júnior do Curso': 'periodo',
       'Participação na diretoria do centro Acadêmico do Curso': 'periodo',
@@ -1817,7 +1820,7 @@
           horasRegistradas: horas,
           horasValidadas: horasValidadasEfetivas,
           periodo,
-          status: horasValidadasEfetivas > 0 ? 'Pendente' : 'Rejeitado'
+          status: horasValidadasEfetivas > 0 ? 'Aprovado' : 'Rejeitado'
         };
 
         const transaction = db.transaction("atividades", "readwrite");
@@ -1995,7 +1998,7 @@
               statusText = "Rejeitado";
             } else {
               statusClass = "pending";
-              statusText = "Pendente";
+              statusText = "Aprovado";
             }
             
             row.innerHTML = `
@@ -2113,7 +2116,7 @@
           horasRegistradas: horas,
           horasValidadas: horasValidadasEfetivas,
           periodo,
-          status: horasValidadasEfetivas > 0 ? 'Pendente' : 'Rejeitado'
+          status: horasValidadasEfetivas > 0 ? 'Aprovado' : 'Rejeitado'
         };
         
         const transaction = db.transaction("atividades", "readwrite");
