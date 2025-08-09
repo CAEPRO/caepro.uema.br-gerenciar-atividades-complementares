@@ -1513,13 +1513,6 @@
           const option = document.createElement("option");
           option.value = opt;
           option.textContent = opt;
-          
-          // Adiciona tag de restrição ao tipo
-          const restriction = restricaoPorTipo[opt] === 'periodo' ? 
-            '<span class="restriction-tag restriction-period">por período</span>' : 
-            '<span class="restriction-tag restriction-register">por registro</span>';
-          
-          option.innerHTML = opt + restriction;
           select.appendChild(option);
         });
         
