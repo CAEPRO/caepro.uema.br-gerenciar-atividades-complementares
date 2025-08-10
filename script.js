@@ -607,6 +607,12 @@ function logout() {
         document.getElementById("loginScreen").style.display = "block";
         document.getElementById("username").value = "";
         document.getElementById("password").value = "";
+
+        // Resetar o botão de login
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.innerHTML = 'Entrar';
+        submitBtn.disabled = false;
+
         hideMessages();
     }
 }
