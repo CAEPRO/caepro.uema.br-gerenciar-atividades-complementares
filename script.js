@@ -1127,13 +1127,14 @@ async function handleEdicaoSubmit(e) {
 
         const tipoAntigo = atividadeOriginal.tipo;
 
-        // Atualizar a atividade imediatamente
+        // Atualizar apenas os dados básicos primeiro
         const atividadeAtualizada = {
             ...atividadeOriginal,
             nome,
             tipo: tipoNovo,
             horasRegistradas: horasNovas,
-            periodo: periodoNovo
+            periodo: periodoNovo,
+            // Não atualizar horasValidadas ainda
         };
 
         await new Promise((resolve, reject) => {
@@ -1157,8 +1158,18 @@ async function handleEdicaoSubmit(e) {
             await recalcularHorasTipo(tipo);
         }
 
-        // Feedback ao usuário
-        const horasValidadas = atividadeAtualizada.horasValidadas || 0;
+        // Agora buscar a atividade novamente para obter as horas validadas atualizadas
+        const atividadeRecalculada = await new Promise((resolve, reject) => {
+            const transaction = db.transaction("atividades", "readonly");
+            const store = transaction.objectStore("atividades");
+            const request = store.get(id);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject("Erro ao obter atividade após recálculo");
+        });
+
+        // Feedback ao usuário com os valores atualizados
+        const horasValidadas = atividadeRecalculada.horasValidadas;
         let msg = "Atividade atualizada com sucesso!";
         if (horasValidadas < horasNovas) {
             const motivo = horasValidadas === 0 ?
@@ -1505,3 +1516,4 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
