@@ -881,7 +881,7 @@ async function importarDados() {
 
             const cursoImportado = linhas[0].split(';')[1];
             if (cursoImportado !== CURSO_DE_GRADUACAO) {
-                throw new Error(`Arquivo incompatível! Este arquivo pertence ao curso: "${cursoImportado}". O sistema atual é configurado para: "${CURSO_DE_GRADUACAO}".`);
+                throw new Error(`Arquivo incompatível! Este arquivo pertence ao curso: ${cursoImportado}. O sistema atual é configurado para: ${CURSO_DE_GRADUACAO}.`);
             }
 
             // 2. Mapear comprovantes
@@ -1296,7 +1296,7 @@ function limparEdicao() {
     // Limpa todos os campos da aba edição
     document.getElementById("formEdicao").reset();
     // Limpar info do comprovante atual
-    document.getElementById("comprovanteAtualInfo").textContent = "Nenhum comprovante cadastrado";
+    document.getElementById("comprovanteAtualInfo").textContent = "";
 }
 
 // Resumo e estatísticas
@@ -1756,3 +1756,4 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
