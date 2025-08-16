@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Atividades Complementares</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+
+<body>
+    <div class="bg-decoration">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+    </div>
+
+    <div class="login-container" id="loginScreen">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h2 id="loginTitle">Login</h2>
+            <p>Acesse suas atividades complementares</p>
+        </div>
+
+        <div id="errorMessage" class="message error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Usuário ou senha inválidos!</span>
+        </div>
+
+        <div id="successMessage" class="message success-message">
+            <i class="fas fa-check-circle"></i>
+            <span>Registro realizado com sucesso!</span>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Usuário</label>
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" placeholder="Digite seu usuário" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" placeholder="Digite sua senha" required>
+                <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+            </div>
+
+            <button type="submit" class="login-btn" id="submitBtn">Entrar</button>
+        </form>
+
+        <div class="divider">
+            <span>ou</span>
+        </div>
+
+        <div class="login-links">
+            <a href="#" class="link-item" id="toggleLink">
+                <i class="fas fa-user-plus"></i> Não tem conta? Registre-se
+            </a>
+            <a href="#" class="link-item" id="aboutLink">
+                <i class="fas fa-info-circle"></i> Sobre o sistema
+            </a>
+            <a href="http://www.cest.edu.br/novosite2020/wp-content/uploads/2025/04/RESOLUCAO-037-2024-CEPE-ATIVIDADES-COMPLEMENTARES-INDEPENDENTES.pdf"
+                class="link-item" target="_blank">
+                <i class="fas fa-file-pdf"></i> Resolução de Atividades Complementares
+            </a>
+        </div>
+
+        <div class="login-footer">
+            <p>Atividades Complementares - CAEPRO/UEMA © 2025</p>
+        </div>
+    </div>
+
+    <div id="mainScreen">
+        <div class="main-header">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h2 id="userName">Carregando...</h2>
+                    <p id="userCourse">Engenharia de Produção Bacharelado UEMA</p>
+                </div>
+            </div>
+
+            <div class="header-buttons">
+                <button class="header-btn" type="button" id="exportBtn">
+                    <i class="fas fa-file-export"></i> Exportar
+                </button>
+                <button class="header-btn" type="button" id="importBtn">
+                    <i class="fas fa-file-import"></i> Importar
+                </button>
+                <button class="header-btn logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+
+        </div>
+
+        <div class="tabs-container">
+            <div class="tabs" id="tabsContainer">
+                <div class="tab active" data-tab="cadastrar">Cadastrar Atividade</div>
+                <div class="tab" data-tab="exibir">Minhas Atividades</div>
+                <div class="tab" data-tab="editar">Editar Atividade</div>
+                <div class="tab" data-tab="resumo">Resumo</div>
+            </div>
+        </div>
+
+        <div class="tab-content active" id="cadastrar">
+            <div class="form-container">
+                <h3 class="form-title"><i class="fas fa-plus-circle"></i> Nova Atividade Complementar</h3>
+
+                <form id="formCadastro">
+                    <div class="form-grid">
+                        <div class="form-group-main">
+                            <label for="nome">Nome da Atividade</label>
+                            <input type="text" id="nome" placeholder="Ex: Participação em congresso" required>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="tipo">Tipo de Atividade</label>
+                            <select id="tipo" required>
+                                <option value="">Selecione um tipo</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="horas">Horas Registradas</label>
+                            <input type="number" id="horas" placeholder="Ex: 100" min="0" step="0.1" required>
+                            <i class="fas fa-info-circle info-icon"></i>
+                            <div class="info-tooltip">
+                                Quantidade total de horas que você dedicou a esta atividade
+                            </div>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="periodo">Período</label>
+                            <input type="text" id="periodo" placeholder="Ex: 2023.1" required>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="comprovante">Comprovante (PDF)</label>
+                            <input type="file" id="comprovante" accept=".pdf">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="form-btn primary">
+                            <i class="fas fa-save"></i> Salvar Atividade
+                        </button>
+                        <button type="button" class="form-btn secondary" id="limparCadastroBtn">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="system-message info">
+                <i class="fas fa-info-circle"></i>
+                <span>Preencha todos os campos para cadastrar uma nova atividade complementar.</span>
+            </div>
+        </div>
+
+        <div class="tab-content" id="exibir">
+            <div class="form-container">
+                <h3 class="form-title"><i class="fas fa-filter"></i> Filtros</h3>
+
+                <form id="formFiltro">
+                    <div class="form-grid">
+                        <div class="form-group-main">
+                            <label for="filtroTipo">Tipo de Atividade</label>
+                            <select id="filtroTipo">
+                                <option value="Todos">Todos os tipos</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="filtroPeriodo">Período</label>
+                            <input type="text" id="filtroPeriodo" placeholder="Ex: 2023.1">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="form-btn primary">
+                            <i class="fas fa-search"></i> Aplicar Filtros
+                        </button>
+                        <button type="button" class="form-btn secondary" id="limparFiltrosBtn">
+                            <i class="fas fa-redo"></i> Limpar Filtros
+                        </button>
+                        <button type="button" class="form-btn primary" id="imprimirBtn">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="activities-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center; vertical-align: middle">Código</th>
+                            <th style="text-align: center; vertical-align: middle">Nome</th>
+                            <th style="text-align: center; vertical-align: middle">Tipo</th>
+                            <th style="text-align: center; vertical-align: middle">Horas Registradas</th>
+                            <th style="text-align: center; vertical-align: middle">Horas Validadas</th>
+                            <th style="text-align: center; vertical-align: middle">Período</th>
+                            <th style="text-align: center; vertical-align: middle">Status</th>
+                            <th style="text-align: center; vertical-align: middle">Comprovante</th>
+                            <th style="text-align: center; vertical-align: middle">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaAtividades">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="hours-summary">
+                <div class="summary-item">
+                    <div class="summary-value" id="totalHorasRegistradas">0</div>
+                    <div class="summary-label">Horas Registradas</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="totalHorasValidadas">0</div>
+                    <div class="summary-label">Horas Validadas</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">225</div>
+                    <div class="summary-label">Horas Necessárias</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="editar">
+            <div class="form-container">
+                <h3 class="form-title"><i class="fas fa-edit"></i> Editar Atividade</h3>
+
+                <form id="formEdicao">
+                    <input type="hidden" id="idEdicao">
+                    <div class="form-grid">
+                        <div class="form-group-main">
+                            <label for="nomeEdicao">Nome da Atividade</label>
+                            <input type="text" id="nomeEdicao" required>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="tipoEdicao">Tipo de Atividade</label>
+                            <select id="tipoEdicao" required>
+                            </select>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="horasEdicao">Horas Registradas</label>
+                            <input type="number" id="horasEdicao" min="0" step="0.1" required>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="periodoEdicao">Período</label>
+                            <input type="text" id="periodoEdicao" required>
+                        </div>
+
+                        <div class="form-group-main">
+                            <label for="comprovanteEdicao">Comprovante (PDF)</label>
+                            <input type="file" id="comprovanteEdicao" accept=".pdf">
+                            <div id="comprovanteAtualInfo" class="file-info"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="form-btn primary">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                        <button type="button" class="form-btn secondary" id="cancelarEdicaoBtn">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <!--
+                        <button type="button" class="form-btn danger" id="excluirAtividadeBtn">
+                            <i class="fas fa-trash"></i> Excluir Atividade
+                        </button>
+                        -->
+                    </div>
+                </form>
+            </div>
+
+            <div class="system-message info">
+                <i class="fas fa-info-circle"></i>
+                <span>Selecione uma atividade na aba "Minhas Atividades" para editar.</span>
+            </div>
+        </div>
+
+        <div class="tab-content" id="resumo">
+            <div class="form-container">
+                <h3 class="form-title"><i class="fas fa-chart-pie"></i> Resumo de Horas</h3>
+
+                <div class="chart-container" style="height: 300px; position: relative;">
+                    <canvas id="hoursChart"></canvas>
+                </div>
+            </div>
+
+            <div class="hours-summary">
+                <div class="summary-item">
+                    <div class="summary-value" id="resumoHorasRegistradas">0</div>
+                    <div class="summary-label">Horas Registradas</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="resumoHorasValidadas">0</div>
+                    <div class="summary-label">Horas Validadas</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">225</div>
+                    <div class="summary-label">Horas Necessárias</div>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <h3 class="form-title"><i class="fas fa-tasks"></i> Progresso</h3>
+
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Progresso total</span>
+                        <span id="progressoTotalPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressoTotalFill"
+                            style="width: 0%; height: 100%; background: linear-gradient(to right, var(--orange), var(--dark-orange));">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Horas validadas</span>
+                        <span id="horasValidadasPercent">0/225</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="horasValidadasFill"
+                            style="width: 0%; height: 100%; background: linear-gradient(to right, #28a745, #218838);">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de administração (mantida no HTML mas oculta) -->
+        <div class="tab-content" id="desenvolvedor">
+            <div class="form-container">
+                <h3 class="form-title"><i class="fas fa-cogs"></i> Administração</h3>
+
+                <div class="system-message info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Esta área é restrita aos administradores do sistema.</span>
+                </div>
+
+                <div class="form-container">
+                    <h4><i class="fas fa-users"></i> Gerenciar Usuários</h4>
+
+                    <div class="form-group-main">
+                        <label for="filtroUsuario">Buscar Usuário</label>
+                        <div class="form-inline" style="display: flex; gap: 10px;">
+                            <input type="text" id="filtroUsuario" placeholder="Digite o nome de usuário"
+                                style="flex: 1;">
+                            <button class="form-btn primary" id="buscarUsuarioBtn">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="detalhesUsuario" class="hidden" style="margin-top: 20px;">
+                        <h5>Detalhes do Usuário</h5>
+                        <div class="form-grid">
+                            <div class="form-group-main">
+                                <label for="adminUsername">Usuário</label>
+                                <input type="text" id="adminUsername" readonly>
+                            </div>
+                            <div class="form-group-main">
+                                <label for="adminPassword">Nova Senha</label>
+                                <input type="password" id="adminPassword" placeholder="Deixe em branco para manter">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="form-btn primary" id="salvarUsuarioBtn">
+                                <i class="fas fa-save"></i> Salvar Alterações
+                            </button>
+                            <button type="button" class="form-btn danger" id="resetarUsuarioBtn">
+                                <i class="fas fa-trash"></i> Resetar Atividades
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
