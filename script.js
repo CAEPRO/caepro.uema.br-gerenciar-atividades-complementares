@@ -898,7 +898,7 @@ async function importarDados() {
 
             // 3. Importar atividades (ignorando a primeira linha do curso)
             let importadas = 0;
-            for (let i = 1; i < linhas.length; i++) {
+            for (let i = 2; i < linhas.length; i++) {
                 try {
                     const campos = linhas[i].split(';');
                     if (campos.length < 7) continue;
@@ -930,6 +930,7 @@ async function importarDados() {
             }
 
             // 4. Atualizar UI
+	    recalcularHorasGlobal();
             atualizarTabela();
             atualizarResumo();
             showSystemMessage(`${importadas} atividades importadas com sucesso!`, "success");
@@ -1282,7 +1283,7 @@ async function handleEdicaoSubmit(e) {
         // Limpar campo de arquivo após sucesso
         comprovanteInput.value = "";
         // Limpar info do comprovante atual
-        document.getElementById("comprovanteAtualInfo").textContent = "";
+        document.getElementById("comprovanteAtualInfo").textContent = "Nenhum comprovante cadastrado";
         atualizarTabela();
         atualizarResumo();
 
@@ -1292,7 +1293,10 @@ async function handleEdicaoSubmit(e) {
 }
 
 function limparEdicao() {
+    // Limpa todos os campos da aba edição
     document.getElementById("formEdicao").reset();
+    // Limpar info do comprovante atual
+    document.getElementById("comprovanteAtualInfo").textContent = "Nenhum comprovante cadastrado";
 }
 
 // Resumo e estatísticas
