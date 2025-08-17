@@ -518,14 +518,23 @@ async function handleCadastroSubmit(e) {
     }
 
     try {
-        // const horasValidadasEfetivas = await calcularHorasValidadas(tipo, horas, periodo, comprovanteFile);
-
-        let comprovante = null;
+        let comprovanteArrayBuffer = null;
         if (comprovanteFile) {
-            comprovante = await fileToArrayBuffer(comprovanteFile);
+            comprovanteArrayBuffer = await fileToArrayBuffer(comprovanteFile);
         }
 
-        const horasValidadasEfetivas = await calcularHorasValidadas(tipo, horas, periodo, comprovante);
+        // Sempre retorna 0 horas validadas se não houver comprovante
+        const horasValidadasEfetivas = comprovanteArrayBuffer == null
+            ? 0
+            : await calcularHorasValidadas(tipo, horas, periodo, comprovanteArrayBuffer);
+
+        // Define o status
+        let status;
+        if (comprovanteArrayBuffer == null) {
+            status = 'Pendente'; // Status pendente quando sem comprovante
+        } else {
+            status = horasValidadasEfetivas > 0 ? 'Aprovado' : 'Rejeitado';
+        }
 
         const novaAtividade = {
             usuario: currentUser,
@@ -534,8 +543,8 @@ async function handleCadastroSubmit(e) {
             horasRegistradas: horas,
             horasValidadas: horasValidadasEfetivas,
             periodo,
-            status: horasValidadasEfetivas > 0 ? 'Aprovado' : 'Rejeitado',
-            comprovante: comprovante
+            status: status,
+            comprovante: comprovanteArrayBuffer
         };
 
         const transaction = db.transaction("atividades", "readwrite");
@@ -543,15 +552,18 @@ async function handleCadastroSubmit(e) {
         const request = store.add(novaAtividade);
 
         request.onsuccess = function () {
-            let msg = "Atividade cadastrada com sucesso!";
-            if (horasValidadasEfetivas < horas) {
-                const motivo = horasValidadasEfetivas === 0 ?
-                    "limite global atingido para este tipo de atividade" :
-                    "limites de horas atingidos";
-
-                msg = `Atividade cadastrada, mas apenas ${horasValidadasEfetivas}h validadas (${motivo}).`;
+            if (comprovanteArrayBuffer == null) {
+                // Mensagem específica para pendente
+                showSystemMessage("Atividade cadastrada com sucesso, porém sem comprovante comprobatório anexado.", "pending");
+            } else if (horasValidadasEfetivas < horas) {
+                const motivo = horasValidadasEfetivas === 0
+                    ? "limite global atingido para este tipo de atividade"
+                    : "limites de horas atingidos";
+                showSystemMessage(`Atividade cadastrada, mas apenas ${horasValidadasEfetivas}h validadas (${motivo}).`, "success");
+            } else {
+                showSystemMessage("Atividade cadastrada com sucesso!", "success");
             }
-            showSystemMessage(msg, "success");
+
             document.getElementById("formCadastro").reset();
             atualizarTabela();
             atualizarResumo();
@@ -572,21 +584,16 @@ function validarPeriodo(periodo) {
 
 // Função para calcular horas validadas
 async function calcularHorasValidadas(tipo, horas, periodo, comprovante, excludeId = null) {
+    // Verificação de comprovante primeiro
+    if (comprovante == null) return 0;
+
+    // Verificação de limite global
     const horasCadastradasGlobal = await consultarHorasCadastradasGlobal(tipo, excludeId);
     const disponibilidadeGlobal = Math.max(0, maxHorasAtividades[tipo] - horasCadastradasGlobal);
+    if (disponibilidadeGlobal <= 0) return 0;
 
-    if (disponibilidadeGlobal <= 0) {
-        return 0;
-    }
-
-    // Essa linha obriga que haja um documento comprobatório cadastrado
-    // caso contrário a atividade consta como rejeitada, isto é, 0h válidas
-    if (comprovante == null) {
-        return 0;
-    }
-
+    // Verificação de limite específico (período ou registro)
     let limiteEspecifico;
-
     if (restricaoPorTipo[tipo] === 'registro') {
         limiteEspecifico = maxHorasValidadasPorTipo[tipo];
     } else {
@@ -712,41 +719,45 @@ function atualizarTabela() {
                 let statusClass = "";
                 let statusText = "";
 
+                // Atualizado para incluir o status Pendente
                 if (atividade.status === 'Aprovado') {
                     statusClass = "approved";
                     statusText = "Aprovado";
                 } else if (atividade.status === 'Rejeitado') {
                     statusClass = "rejected";
                     statusText = "Rejeitado";
+                } else if (atividade.status === 'Pendente') {
+                    statusClass = "pending";
+                    statusText = "Pendente";
                 } else {
                     statusClass = "pending";
-                    statusText = "Aprovado";
+                    statusText = "Pendente";
                 }
 
                 row.innerHTML = `
-          <td>${index}</td>
-          <td>${atividade.nome}</td>
-          <td>${atividade.tipo}</td>
-          <td>${atividade.horasRegistradas}</td>
-          <td>${atividade.horasValidadas}</td>
-          <td>${atividade.periodo}</td>
-          <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-          <td style="text-align: center; vertical-align: middle;">
-            <button class="action-btn download" onclick="baixarComprovante(${atividade.id})" ${!atividade.comprovante ? 'disabled' : ''}>
-              <i class="fas fa-download"></i>
-            </button>
-          </td>
-          <td style="vertical-align: middle;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <button class="action-btn edit" onclick="carregarEdicao(${atividade.id})">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete" onclick="confirmarExclusao(${atividade.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-          </td>
-        `;
+                    <td>${index}</td>
+                    <td>${atividade.nome}</td>
+                    <td>${atividade.tipo}</td>
+                    <td>${atividade.horasRegistradas}</td>
+                    <td>${atividade.horasValidadas}</td>
+                    <td>${atividade.periodo}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td style="text-align: center; vertical-align: middle;">
+                        <button class="action-btn download" onclick="baixarComprovante(${atividade.id})" ${!atividade.comprovante ? 'disabled' : ''}>
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <button class="action-btn edit" onclick="carregarEdicao(${atividade.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="confirmarExclusao(${atividade.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
 
                 tbody.appendChild(row);
                 index++;
@@ -1085,44 +1096,81 @@ async function recalcularHorasTipo(tipo) {
             };
         });
 
+        // Ordena por ID (ordem de criação)
         atividades.sort((a, b) => a.id - b.id);
 
         const limiteGlobal = maxHorasAtividades[tipo] || 0;
         let acumuladoGlobal = 0;
 
+        // Rastreia horas validadas por período
+        const horasPorPeriodo = {};
+
         const atualizacoes = [];
 
         for (const atividade of atividades) {
-            const maxIndividual = maxHorasValidadasPorTipo[atividade.tipo] || 0;
-            const restanteGlobal = Math.max(0, limiteGlobal - acumuladoGlobal);
-            const novasHorasValidadas = Math.min(
-                maxIndividual,
-                restanteGlobal,
-                atividade.horasRegistradas
-            );
-
-            acumuladoGlobal += novasHorasValidadas;
-
             if (atividade.comprovante != null) {
-                // Caso TENHA comprovante: valida normalmente
-                if (novasHorasValidadas !== atividade.horasValidadas) {
+                // Calcular disponibilidade global
+                const disponivelGlobal = Math.max(0, limiteGlobal - acumuladoGlobal);
+
+                // Calcular disponibilidade específica
+                let disponivelEspecifico;
+                if (restricaoPorTipo[tipo] === 'periodo') {
+                    // Inicializa acumulador do período se necessário
+                    if (!horasPorPeriodo[atividade.periodo]) {
+                        horasPorPeriodo[atividade.periodo] = 0;
+                    }
+
+                    // Calcula disponibilidade para o período específico
+                    disponivelEspecifico = Math.max(
+                        0,
+                        maxHorasValidadasPorTipo[tipo] - horasPorPeriodo[atividade.periodo]
+                    );
+                } else {
+                    // Para restrição por registro, usa o limite fixo
+                    disponivelEspecifico = maxHorasValidadasPorTipo[tipo];
+                }
+
+                // Calcula horas validadas efetivas
+                const novasHorasValidadas = Math.min(
+                    atividade.horasRegistradas,
+                    disponivelGlobal,
+                    disponivelEspecifico
+                );
+
+                // Atualiza acumuladores
+                acumuladoGlobal += novasHorasValidadas;
+                if (restricaoPorTipo[tipo] === 'periodo') {
+                    horasPorPeriodo[atividade.periodo] += novasHorasValidadas;
+                }
+
+                // Determina o status com base nas horas validadas
+                const novoStatus = novasHorasValidadas > 0 ? 'Aprovado' : 'Rejeitado';
+
+                // Verifica se precisa atualizar
+                if (atividade.horasValidadas !== novasHorasValidadas || atividade.status !== novoStatus) {
                     const atividadeAtualizada = {
                         ...atividade,
                         horasValidadas: novasHorasValidadas,
-                        status: novasHorasValidadas > 0 ? 'Aprovado' : 'Rejeitado'
+                        status: novoStatus
                     };
                     atualizacoes.push(atividadeAtualizada);
                 }
             } else {
-                const atividadeAtualizada = {
-                    ...atividade,
-                    horasValidadas: 0,
-                    status: 'Rejeitado'
-                };
-                atualizacoes.push(atividadeAtualizada);
+                // Atividade SEM comprovante
+                const precisaAtualizar = atividade.horasValidadas !== 0 || atividade.status !== 'Pendente';
+
+                if (precisaAtualizar) {
+                    const atividadeAtualizada = {
+                        ...atividade,
+                        horasValidadas: 0,
+                        status: 'Pendente'
+                    };
+                    atualizacoes.push(atividadeAtualizada);
+                }
             }
         }
 
+        // Salva as atualizações necessárias
         if (atualizacoes.length > 0) {
             await new Promise((resolve, reject) => {
                 const transaction = db.transaction("atividades", "readwrite");
@@ -1142,6 +1190,7 @@ async function recalcularHorasTipo(tipo) {
         return true;
 
     } catch (error) {
+        console.error("Erro no recálculo do tipo", tipo, ":", error);
         throw error;
     }
 }
@@ -1249,13 +1298,25 @@ async function handleEdicaoSubmit(e) {
             novoComprovante = await fileToArrayBuffer(comprovanteFile);
         }
 
+        // Calcular novas horas validadas e definir o status
+        let novasHorasValidadas = 0;
+        let novoStatus = 'Pendente'; // Por padrão, pendente se não houver comprovante
+
+        // Se houver comprovante, calcula as horas validadas e define o status
+        if (novoComprovante != null) {
+            novasHorasValidadas = await calcularHorasValidadas(tipoNovo, horasNovas, periodoNovo, novoComprovante, id);
+            novoStatus = novasHorasValidadas > 0 ? 'Aprovado' : 'Rejeitado';
+        }
+
         const atividadeAtualizada = {
             ...atividadeOriginal,
             nome,
             tipo: tipoNovo,
             horasRegistradas: horasNovas,
+            horasValidadas: novasHorasValidadas,
             periodo: periodoNovo,
-            comprovante: novoComprovante // Atualiza o comprovante (pode ser o mesmo ou novo)
+            comprovante: novoComprovante,
+            status: novoStatus
         };
 
         await new Promise((resolve, reject) => {
@@ -1277,6 +1338,7 @@ async function handleEdicaoSubmit(e) {
             await recalcularHorasTipo(tipo);
         }
 
+        // Atualizar a atividade após o recálculo (pode ter mudado devido ao recálculo do tipo)
         const atividadeRecalculada = await new Promise((resolve, reject) => {
             const transaction = db.transaction("atividades", "readonly");
             const store = transaction.objectStore("atividades");
@@ -1286,22 +1348,23 @@ async function handleEdicaoSubmit(e) {
             request.onerror = () => reject("Erro ao obter atividade após recálculo");
         });
 
-        const horasValidadas = atividadeRecalculada.horasValidadas;
-        let msg = "Atividade atualizada com sucesso!";
-        if (horasValidadas < horasNovas) {
-            const motivo = horasValidadas === 0 ?
+        // Exibir mensagem de sucesso com base no status
+        if (atividadeRecalculada.comprovante == null) {
+            showSystemMessage("Atividade atualizada com sucesso, porém sem comprovante comprobatório anexado.", "pending");
+        } else if (atividadeRecalculada.horasValidadas < horasNovas) {
+            const motivo = atividadeRecalculada.horasValidadas === 0 ?
                 "limite global atingido para este tipo de atividade" :
                 "limites de horas atingidos";
-
-            msg = `Atividade atualizada, mas apenas ${horasValidadas}h validadas (${motivo}).`;
+            showSystemMessage(`Atividade atualizada, mas apenas ${atividadeRecalculada.horasValidadas}h validadas (${motivo}).`, "success");
+        } else {
+            showSystemMessage("Atividade atualizada com sucesso!", "success");
         }
 
-        showSystemMessage(msg, "success");
         document.getElementById("formEdicao").reset();
         // Limpar campo de arquivo após sucesso
         comprovanteInput.value = "";
         // Limpar info do comprovante atual
-        document.getElementById("comprovanteAtualInfo").textContent = "Nenhum comprovante cadastrado";
+        document.getElementById("comprovanteAtualInfo").textContent = "";
         atualizarTabela();
         atualizarResumo();
 
