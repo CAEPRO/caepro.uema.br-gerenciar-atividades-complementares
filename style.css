@@ -26,7 +26,10 @@
     --dark-danger: #b02a37;
     /* 20% mais escuro que --danger */
 
-
+    /* Cores para o Estilo Pendente*/
+    --pending: #ffc107;
+    --light-pending: #fff3cd;
+    --dark-pending: #856404;
 }
 
 * {
@@ -783,6 +786,12 @@ body {
     border: 1px solid #c8e6c9;
 }
 
+.system-message.pending {
+    background: var(--light-pending);
+    color: var(--dark-pending);
+    border: 1px solid var(--pending);
+}
+
 .system-message.error {
     background: #ffebee;
     color: #c62828;
@@ -814,8 +823,9 @@ body {
 }
 
 .status-badge.pending {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: var(--light-pending);
+    color: var(--dark-pending);
+    border: 1px solid var(--pending);
 }
 
 .status-badge.rejected {
