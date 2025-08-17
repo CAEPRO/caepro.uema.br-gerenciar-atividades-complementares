@@ -518,12 +518,14 @@ async function handleCadastroSubmit(e) {
     }
 
     try {
-        const horasValidadasEfetivas = await calcularHorasValidadas(tipo, horas, periodo);
+        // const horasValidadasEfetivas = await calcularHorasValidadas(tipo, horas, periodo, comprovanteFile);
 
-        let comprovanteArrayBuffer = null;
+        let comprovante = null;
         if (comprovanteFile) {
-            comprovanteArrayBuffer = await fileToArrayBuffer(comprovanteFile);
+            comprovante = await fileToArrayBuffer(comprovanteFile);
         }
+
+        const horasValidadasEfetivas = await calcularHorasValidadas(tipo, horas, periodo, comprovante);
 
         const novaAtividade = {
             usuario: currentUser,
@@ -533,7 +535,7 @@ async function handleCadastroSubmit(e) {
             horasValidadas: horasValidadasEfetivas,
             periodo,
             status: horasValidadasEfetivas > 0 ? 'Aprovado' : 'Rejeitado',
-            comprovante: comprovanteArrayBuffer
+            comprovante: comprovante
         };
 
         const transaction = db.transaction("atividades", "readwrite");
@@ -569,11 +571,17 @@ function validarPeriodo(periodo) {
 }
 
 // Função para calcular horas validadas
-async function calcularHorasValidadas(tipo, horas, periodo, excludeId = null) {
+async function calcularHorasValidadas(tipo, horas, periodo, comprovante, excludeId = null) {
     const horasCadastradasGlobal = await consultarHorasCadastradasGlobal(tipo, excludeId);
     const disponibilidadeGlobal = Math.max(0, maxHorasAtividades[tipo] - horasCadastradasGlobal);
 
     if (disponibilidadeGlobal <= 0) {
+        return 0;
+    }
+
+    // Essa linha obriga que haja um documento comprobatório cadastrado
+    // caso contrário a atividade consta como rejeitada, isto é, 0h válidas
+    if (comprovante == null) {
         return 0;
     }
 
@@ -930,7 +938,7 @@ async function importarDados() {
             }
 
             // 4. Atualizar UI
-	    recalcularHorasGlobal();
+            recalcularHorasGlobal();
             atualizarTabela();
             atualizarResumo();
             showSystemMessage(`${importadas} atividades importadas com sucesso!`, "success");
@@ -1095,11 +1103,21 @@ async function recalcularHorasTipo(tipo) {
 
             acumuladoGlobal += novasHorasValidadas;
 
-            if (novasHorasValidadas !== atividade.horasValidadas) {
+            if (atividade.comprovante != null) {
+                // Caso TENHA comprovante: valida normalmente
+                if (novasHorasValidadas !== atividade.horasValidadas) {
+                    const atividadeAtualizada = {
+                        ...atividade,
+                        horasValidadas: novasHorasValidadas,
+                        status: novasHorasValidadas > 0 ? 'Aprovado' : 'Rejeitado'
+                    };
+                    atualizacoes.push(atividadeAtualizada);
+                }
+            } else {
                 const atividadeAtualizada = {
                     ...atividade,
-                    horasValidadas: novasHorasValidadas,
-                    status: novasHorasValidadas > 0 ? 'Aprovado' : 'Rejeitado'
+                    horasValidadas: 0,
+                    status: 'Rejeitado'
                 };
                 atualizacoes.push(atividadeAtualizada);
             }
@@ -1756,4 +1774,3 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
-
