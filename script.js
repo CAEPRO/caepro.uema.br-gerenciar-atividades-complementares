@@ -810,8 +810,7 @@ async function baixarComprovante(id) {
     }
 }
 
-// Exportação de dados para ZIP
-async function exportarDados() {
+async function exportarDados() { // Função para Exportação de dados para ZIP
     try {
         const atividades = await new Promise((resolve) => {
             const atividadesDoUsuario = [];
@@ -835,10 +834,10 @@ async function exportarDados() {
         const zip = new JSZip();
 
         // 1. Criar arquivo CSV com proteção de curso
-        let csvContent = `Curso;${CURSO_DE_GRADUACAO}\n`; // Linha de proteção
-        csvContent += "ID;Nome;Tipo;Horas Registradas;Horas Validadas;Período;Status;\n";
+        let csvContent = `Curso�${CURSO_DE_GRADUACAO}\n`; // Linha de proteção
+        csvContent += "ID�Nome�Tipo�Horas Registradas�Horas Validadas�Período�Status�\n";
         atividades.forEach(atividade => {
-            csvContent += `${atividade.id};${atividade.nome};${atividade.tipo};${atividade.horasRegistradas};${atividade.horasValidadas};${atividade.periodo};${atividade.status}\n`;
+            csvContent += `${atividade.id}�${atividade.nome}�${atividade.tipo}�${atividade.horasRegistradas}�${atividade.horasValidadas}�${atividade.periodo}�${atividade.status}\n`;
         });
         zip.file("atividades.csv", csvContent);
 
@@ -871,8 +870,7 @@ async function exportarDados() {
     }
 }
 
-// Importação de dados de ZIP
-async function importarDados() {
+async function importarDados() { // Função para Importação de dados de ZIP
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.zip';
@@ -894,11 +892,11 @@ async function importarDados() {
             const linhas = csvContent.split('\n').filter(linha => linha.trim() !== '');
 
             // Verificação de compatibilidade do curso
-            if (linhas.length === 0 || !linhas[0].startsWith('Curso;')) {
+            if (linhas.length === 0 || !linhas[0].startsWith('Curso�')) {
                 throw new Error("Arquivo inválido: Formato não reconhecido");
             }
 
-            const cursoImportado = linhas[0].split(';')[1];
+            const cursoImportado = linhas[0].split('�')[1];
             if (cursoImportado !== CURSO_DE_GRADUACAO) {
                 throw new Error(`Arquivo incompatível! Este arquivo pertence ao curso: ${cursoImportado}. O sistema atual é configurado para: ${CURSO_DE_GRADUACAO}.`);
             }
@@ -919,7 +917,7 @@ async function importarDados() {
             let importadas = 0;
             for (let i = 2; i < linhas.length; i++) {
                 try {
-                    const campos = linhas[i].split(';');
+                    const campos = linhas[i].split('�');
                     if (campos.length < 7) continue;
 
                     const novaAtividade = {
@@ -1837,3 +1835,4 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
